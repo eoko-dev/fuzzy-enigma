@@ -50,7 +50,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json [$__range])",
+          "expr": "count_over_time({job=~\".+\"} | json | eventid != \"\" [$__range])",
           "legendFormat": "Events",
           "refId": "A"
         }
@@ -130,7 +130,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid == \"cowrie.command\" [$__range])",
+          "expr": "count_over_time({job=~\".+\"} | json | eventid = \"cowrie.command\" [$__range])",
           "legendFormat": "Commands",
           "refId": "A"
         }
@@ -170,7 +170,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid == \"cowrie.session.connect\" [$__range])",
+          "expr": "count_over_time({job=~\".+\"} | json | eventid = \"cowrie.session.connect\" [$__range])",
           "legendFormat": "Sessions",
           "refId": "A"
         }
@@ -213,7 +213,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum by (honeypot) (count_over_time({job=~\".+\"} | json [$__interval]))",
+          "expr": "sum by (honeypot) (count_over_time({job=~\".+\"} | json | eventid != \"\" [$__interval]))",
           "legendFormat": "{{honeypot}}",
           "refId": "A"
         }
@@ -314,7 +314,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid == \"cowrie.session.connect\" [1h]))",
+          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid = \"cowrie.session.connect\" [1h]))",
           "legendFormat": "Connections",
           "refId": "A"
         }
