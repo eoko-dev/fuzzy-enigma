@@ -70,7 +70,7 @@ preflight_checks() {
     # Check if already installed
     if [[ -f "${INSTALL_DIR}/.installed" ]]; then
         log_warn "HoneyStack appears to be already installed at ${INSTALL_DIR}"
-        read -rp "Reinstall? This will stop existing containers. [y/N]: " confirm
+        read -rp "Reinstall? This will stop existing containers. [y/N]: " confirm || true
         if [[ "${confirm}" != "y" && "${confirm}" != "Y" ]]; then
             log_info "Aborted."
             exit 0
@@ -138,7 +138,7 @@ install_iptables() {
     fi
 
     # Install iptables-persistent for rule persistence
-    if ! dpkg -l iptables-persistent &>/dev/null 2>&1; then
+    if ! dpkg -l iptables-persistent &>/dev/null; then
         log_step "Installing iptables-persistent..."
         echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
         echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
@@ -199,7 +199,7 @@ reconfigure_ssh() {
     local current_port
 
     # Detect current SSH port
-    current_port=$(grep -E "^#?Port " "${sshd_config}" 2>/dev/null | tail -1 | awk '{print $2}')
+    current_port=$(grep -E "^#?Port " "${sshd_config}" 2>/dev/null | tail -1 | awk '{print $2}') || true
     current_port="${current_port:-22}"
 
     if [[ "${current_port}" == "${SSH_PORT}" ]]; then
@@ -266,14 +266,27 @@ setup_iptables() {
     fi
 
     # Redirect port 22 → Cowrie SSH
-    iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}" \
-        -m comment --comment "honeystack-ssh"
-    log_info "Port 22 → ${cowrie_ssh_port} (Cowrie SSH)"
+    if iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}" \
+        -m comment --comment "honeystack-ssh" 2>/dev/null; then
+        log_info "Port 22 → ${cowrie_ssh_port} (Cowrie SSH)"
+    elif iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}"; then
+        # Fallback without comment module
+        log_info "Port 22 → ${cowrie_ssh_port} (Cowrie SSH) [no comment tag]"
+    else
+        log_error "Failed to create iptables rule for SSH redirect. Check iptables/nftables setup."
+        exit 1
+    fi
 
     # Redirect port 23 → Cowrie Telnet
-    iptables -t nat -A PREROUTING -p tcp --dport 23 -j REDIRECT --to-port "${cowrie_telnet_port}" \
-        -m comment --comment "honeystack-telnet"
-    log_info "Port 23 → ${cowrie_telnet_port} (Cowrie Telnet)"
+    if iptables -t nat -A PREROUTING -p tcp --dport 23 -j REDIRECT --to-port "${cowrie_telnet_port}" \
+        -m comment --comment "honeystack-telnet" 2>/dev/null; then
+        log_info "Port 23 → ${cowrie_telnet_port} (Cowrie Telnet)"
+    elif iptables -t nat -A PREROUTING -p tcp --dport 23 -j REDIRECT --to-port "${cowrie_telnet_port}"; then
+        log_info "Port 23 → ${cowrie_telnet_port} (Cowrie Telnet) [no comment tag]"
+    else
+        log_error "Failed to create iptables rule for Telnet redirect. Check iptables/nftables setup."
+        exit 1
+    fi
 
     # Persist iptables rules
     if command -v netfilter-persistent &>/dev/null; then
@@ -354,7 +367,10 @@ generate_compose() {
 
     # Generate the merged compose file
     cd "${INSTALL_DIR}"
-    docker compose "${compose_files[@]}" config > "${compose_file}" 2>/dev/null
+    if ! docker compose "${compose_files[@]}" config > "${compose_file}"; then
+        log_error "Failed to generate docker-compose.yml. Check compose files for errors."
+        exit 1
+    fi
 
     log_info "Generated ${compose_file}"
 }
@@ -402,7 +418,7 @@ health_check() {
     # Check all containers
     echo ""
     log_step "Container status:"
-    docker compose -f "${INSTALL_DIR}/docker-compose.yml" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+    docker compose -f "${INSTALL_DIR}/docker-compose.yml" ps 2>/dev/null || docker ps --filter "name=honeystack" || true
 
     # Verify Cowrie is listening
     if ss -tlnp | grep -q ":${COWRIE_SSH_PORT:-2222}"; then
@@ -417,7 +433,8 @@ health_check() {
 ###############################################################################
 print_summary() {
     local grafana_pass
-    grafana_pass=$(grep GRAFANA_ADMIN_PASSWORD "${INSTALL_DIR}/.env" | cut -d= -f2)
+    grafana_pass=$(grep GRAFANA_ADMIN_PASSWORD "${INSTALL_DIR}/.env" | cut -d= -f2) || true
+    grafana_pass="${grafana_pass:-honeystack}"
 
     echo ""
     echo -e "${GREEN}╔══════════════════════════════════════════════════════════════╗${NC}"

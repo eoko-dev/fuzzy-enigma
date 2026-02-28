@@ -100,14 +100,13 @@ fi
 # Clean up data (optional)
 ###############################################################################
 echo ""
-read -rp "Remove all honeypot data and logs? [y/N]: " remove_data
+read -rp "Remove all honeypot data and logs? [y/N]: " remove_data || true
 if [[ "${remove_data}" == "y" || "${remove_data}" == "Y" ]]; then
     log_step "Removing data and logs..."
     rm -rf "${LOG_DIR}"
     log_info "Log directory removed: ${LOG_DIR}"
 
     # Remove Docker volumes
-    local honeystack_vols
     honeystack_vols=$(docker volume ls --format '{{.Name}}' | grep -E "honeystack" || true)
     if [[ -n "${honeystack_vols}" ]]; then
         while read -r vol; do
@@ -120,7 +119,7 @@ fi
 ###############################################################################
 # Remove install directory
 ###############################################################################
-read -rp "Remove installation directory (${INSTALL_DIR})? [y/N]: " remove_install
+read -rp "Remove installation directory (${INSTALL_DIR})? [y/N]: " remove_install || true
 if [[ "${remove_install}" == "y" || "${remove_install}" == "Y" ]]; then
     rm -rf "${INSTALL_DIR}"
     log_info "Installation directory removed."
@@ -129,7 +128,7 @@ fi
 ###############################################################################
 # Remove Docker images (optional)
 ###############################################################################
-read -rp "Remove Docker images (cowrie, grafana, loki, promtail)? [y/N]: " remove_images
+read -rp "Remove Docker images (cowrie, grafana, loki, promtail)? [y/N]: " remove_images || true
 if [[ "${remove_images}" == "y" || "${remove_images}" == "Y" ]]; then
     log_step "Removing Docker images..."
     docker rmi cowrie/cowrie:latest 2>/dev/null || true
