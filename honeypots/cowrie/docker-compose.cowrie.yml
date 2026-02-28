@@ -17,7 +17,7 @@ services:
     volumes:
       - cowrie-var:/cowrie/cowrie-var
       - ${LOG_DIR:-/var/log/honeypots}/cowrie:/cowrie-logs
-      - ./honeypots/cowrie/cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg.local:ro
+      - ./cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg.local:ro
     networks:
       - honeystack
     deploy:

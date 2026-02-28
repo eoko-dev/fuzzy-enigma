@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - loki-data:/loki
-      - ./core/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml:ro
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - honeystack
@@ -24,7 +24,7 @@ services:
     container_name: honeystack-promtail
     restart: unless-stopped
     volumes:
-      - ./core/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - ${LOG_DIR:-/var/log/honeypots}:/var/log/honeypots:ro
       - promtail-positions:/tmp/positions
     command: -config.file=/etc/promtail/config.yml
@@ -49,9 +49,9 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./core/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
-      - ./core/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./core/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       loki:
         condition: service_healthy
