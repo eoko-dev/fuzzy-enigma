@@ -45,6 +45,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.session.connect\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -72,6 +73,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -98,6 +100,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.success\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -124,6 +127,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.failed\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -150,6 +154,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.command\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -176,6 +181,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.session.file_download\" [$__range])",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -216,12 +222,14 @@
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "sum(count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.failed\" [$__interval]))",
           "legendFormat": "Failed",
+          "queryType": "range",
           "refId": "A"
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "sum(count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.success\" [$__interval]))",
           "legendFormat": "Success",
+          "queryType": "range",
           "refId": "B"
         }
       ]
@@ -261,8 +269,8 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(25, sum by (username) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" | json | username != \"\" [$__range])))",
-          "refId": "A",
-          "instant": true
+          "queryType": "instant",
+          "refId": "A"
         }
       ]
     },
@@ -301,8 +309,8 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(25, sum by (password) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" | json | password != \"\" [$__range])))",
-          "refId": "A",
-          "instant": true
+          "queryType": "instant",
+          "refId": "A"
         }
       ]
     },
@@ -341,8 +349,8 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(25, sum by (src_ip) (count_over_time({honeypot=\"cowrie\"} | json | src_ip != \"\" [$__range])))",
-          "refId": "A",
-          "instant": true
+          "queryType": "instant",
+          "refId": "A"
         }
       ]
     },
@@ -385,8 +393,8 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(25, sum by (input) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.command\" | json | input != \"\" [$__range])))",
-          "refId": "A",
-          "instant": true
+          "queryType": "instant",
+          "refId": "A"
         }
       ]
     },
@@ -410,6 +418,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "{honeypot=\"cowrie\"} |= \"cowrie.command\" | json",
+          "queryType": "range",
           "refId": "A"
         }
       ]
@@ -441,6 +450,7 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "{honeypot=\"cowrie\"} | json",
+          "queryType": "range",
           "refId": "A"
         }
       ]
