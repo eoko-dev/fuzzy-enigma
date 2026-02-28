@@ -38,14 +38,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
       "id": 1,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "SSH Connections",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.connect\" [$__range])",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -66,14 +66,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
       "id": 2,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "Login Attempts",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.login\\\\..*\" [$__range])",
-          "queryType": "range",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.login\\..*\" [$__range])",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -93,14 +93,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
       "id": 3,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "Successful Logins",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.success\" [$__range])",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -120,14 +120,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
       "id": 4,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "Failed Logins",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.failed\" [$__range])",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -147,14 +147,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
       "id": 5,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "Commands Run",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.command\\\\..*\" [$__range])",
-          "queryType": "range",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.command\\..*\" [$__range])",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -174,14 +174,14 @@
       },
       "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
       "id": 6,
-      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["count"] } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["sum"] } },
       "title": "File Downloads",
       "type": "stat",
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.file_download\" [$__range])",
-          "queryType": "range",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -268,7 +268,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (username) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.login\\\\..*\" | username != \"\" [$__range])))",
+          "expr": "topk(25, sum by (username) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.login\\..*\" | username != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -308,7 +308,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (password) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.login\\\\..*\" | password != \"\" [$__range])))",
+          "expr": "topk(25, sum by (password) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.login\\..*\" | password != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -392,7 +392,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (input) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.command\\\\..*\" | input != \"\" [$__range])))",
+          "expr": "topk(25, sum by (input) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.command\\..*\" | input != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -417,7 +417,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\\\.command\\\\..*\"",
+          "expr": "{honeypot=\"cowrie\"} | json | eventid =~ \"cowrie\\.command\\..*\"",
           "queryType": "range",
           "refId": "A"
         }
