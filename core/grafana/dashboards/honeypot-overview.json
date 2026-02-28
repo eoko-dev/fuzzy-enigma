@@ -360,13 +360,13 @@
       {
         "current": { "selected": false, "text": "All", "value": "$__all" },
         "datasource": { "type": "loki", "uid": "loki" },
-        "definition": "label_values(honeypot)",
+        "definition": "label_values({job=~\".+\"}, honeypot)",
         "hide": 0,
         "includeAll": true,
         "label": "Honeypot",
         "multi": true,
         "name": "honeypot",
-        "query": "label_values(honeypot)",
+        "query": "label_values({job=~\".+\"}, honeypot)",
         "refresh": 2,
         "type": "query"
       }
