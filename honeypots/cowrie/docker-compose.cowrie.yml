@@ -22,16 +22,16 @@ services:
       - "23:2223"
       - "2223:2223"
     environment:
-      - COWRIE_output_jsonlog__enabled=true
-      - COWRIE_output_jsonlog__logfile=/cowrie-logs/cowrie.json
-      - COWRIE_output_jsonlog__epoch_timestamp=false
-      - COWRIE_ssh__listen_endpoints=tcp:2222:interface=0.0.0.0
-      - COWRIE_telnet__listen_endpoints=tcp:2223:interface=0.0.0.0
-      - COWRIE_honeypot__hostname=${COWRIE_HOSTNAME:-svr04}
-      - COWRIE_honeypot__sensor_name=honeystack-cowrie
-      - COWRIE_honeypot__log_path=/cowrie-logs
+      # Cowrie env vars use COWRIE_{SECTION}_{KEY} with a single underscore separator.
+      # Sections with underscores (e.g. output_jsonlog) cannot be addressed via env vars
+      # due to ambiguity in parsing; those settings are controlled via cowrie.cfg.local.
+      - COWRIE_ssh_listen_endpoints=tcp:2222:interface=0.0.0.0
+      - COWRIE_telnet_listen_endpoints=tcp:2223:interface=0.0.0.0
+      - COWRIE_honeypot_hostname=${COWRIE_HOSTNAME:-svr04}
+      - COWRIE_honeypot_sensor_name=honeystack-cowrie
+      - COWRIE_honeypot_log_path=/cowrie-logs
     volumes:
-      - cowrie-var:/cowrie/cowrie-var
+      - cowrie-var:/cowrie/cowrie-git/var
       - ${LOG_DIR:-/var/log/honeypots}/cowrie:/cowrie-logs
       - ./cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg.local:ro
     networks:

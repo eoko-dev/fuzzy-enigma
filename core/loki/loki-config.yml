@@ -22,6 +22,7 @@ ingester:
   chunk_idle_period: 30m
   chunk_retain_period: 30s
   wal:
+    enabled: true
     dir: /loki/wal
 
 schema_config:
@@ -47,6 +48,7 @@ limits_config:
   max_streams_per_user: 10000
   reject_old_samples: true
   reject_old_samples_max_age: 168h
+  retention_period: 168h
   max_entries_limit_per_query: 5000
   max_query_series: 500
 
