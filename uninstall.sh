@@ -49,9 +49,13 @@ fi
 # Remove iptables rules
 ###############################################################################
 log_step "Removing iptables rules..."
-iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" | while read -r rule; do
-    iptables -t nat $(echo "${rule}" | sed 's/-A/-D/') 2>/dev/null || true
-done
+existing_rules=$(iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" || true)
+if [[ -n "${existing_rules}" ]]; then
+    while read -r rule; do
+        # shellcheck disable=SC2086
+        iptables -t nat ${rule//-A/-D} 2>/dev/null || true
+    done <<< "${existing_rules}"
+fi
 
 if command -v netfilter-persistent &>/dev/null; then
     netfilter-persistent save 2>/dev/null || true
@@ -103,9 +107,13 @@ if [[ "${remove_data}" == "y" || "${remove_data}" == "Y" ]]; then
     log_info "Log directory removed: ${LOG_DIR}"
 
     # Remove Docker volumes
-    docker volume ls --format '{{.Name}}' | grep -E "honeystack" | while read -r vol; do
-        docker volume rm "${vol}" 2>/dev/null || true
-    done
+    local honeystack_vols
+    honeystack_vols=$(docker volume ls --format '{{.Name}}' | grep -E "honeystack" || true)
+    if [[ -n "${honeystack_vols}" ]]; then
+        while read -r vol; do
+            docker volume rm "${vol}" 2>/dev/null || true
+        done <<< "${honeystack_vols}"
+    fi
     log_info "Docker volumes removed."
 fi
 

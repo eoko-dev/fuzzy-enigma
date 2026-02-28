@@ -256,9 +256,14 @@ setup_iptables() {
     log_step "Setting up iptables port redirection..."
 
     # Clean up any existing HoneyStack rules
-    iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" | while read -r rule; do
-        iptables -t nat $(echo "${rule}" | sed 's/-A/-D/') 2>/dev/null || true
-    done
+    local existing_rules
+    existing_rules=$(iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" || true)
+    if [[ -n "${existing_rules}" ]]; then
+        while read -r rule; do
+            # shellcheck disable=SC2086
+            iptables -t nat ${rule//-A/-D} 2>/dev/null || true
+        done <<< "${existing_rules}"
+    fi
 
     # Redirect port 22 → Cowrie SSH
     iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}" \
