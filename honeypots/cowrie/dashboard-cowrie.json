@@ -44,7 +44,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.session.connect\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.session.connect\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -72,7 +72,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -99,7 +99,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.success\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login.success\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -126,7 +126,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.failed\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login.failed\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -153,7 +153,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.command\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.command\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -180,7 +180,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} |= \"cowrie.session.file_download\" [$__range])",
+          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.session.file_download\" [$__range])",
           "queryType": "range",
           "refId": "A"
         }
@@ -220,14 +220,14 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.failed\" [$__interval]))",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login.failed\" [$__interval]))",
           "legendFormat": "Failed",
           "queryType": "range",
           "refId": "A"
         },
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "sum(count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login.success\" [$__interval]))",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login.success\" [$__interval]))",
           "legendFormat": "Success",
           "queryType": "range",
           "refId": "B"
@@ -268,7 +268,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (username) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" | json | username != \"\" [$__range])))",
+          "expr": "topk(25, sum by (username) (count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login\" | username != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -308,7 +308,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (password) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.login\" | json | password != \"\" [$__range])))",
+          "expr": "topk(25, sum by (password) (count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.login\" | password != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -392,7 +392,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "topk(25, sum by (input) (count_over_time({honeypot=\"cowrie\"} |= \"cowrie.command\" | json | input != \"\" [$__range])))",
+          "expr": "topk(25, sum by (input) (count_over_time({honeypot=\"cowrie\"} | json | eventid == \"cowrie.command\" | input != \"\" [$__range])))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -417,7 +417,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "{honeypot=\"cowrie\"} |= \"cowrie.command\" | json",
+          "expr": "{honeypot=\"cowrie\"} | json | eventid == \"cowrie.command\"",
           "queryType": "range",
           "refId": "A"
         }
