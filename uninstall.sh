@@ -46,25 +46,6 @@ else
 fi
 
 ###############################################################################
-# Remove iptables rules
-###############################################################################
-log_step "Removing iptables rules..."
-existing_rules=$(iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" || true)
-if [[ -n "${existing_rules}" ]]; then
-    while read -r rule; do
-        # shellcheck disable=SC2086
-        iptables -t nat ${rule//-A/-D} 2>/dev/null || true
-    done <<< "${existing_rules}"
-fi
-
-if command -v netfilter-persistent &>/dev/null; then
-    netfilter-persistent save 2>/dev/null || true
-elif [[ -d /etc/iptables ]]; then
-    iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
-fi
-log_info "iptables rules removed."
-
-###############################################################################
 # Restore SSH
 ###############################################################################
 log_step "Restoring SSH configuration..."

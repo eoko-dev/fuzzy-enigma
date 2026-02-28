@@ -4,8 +4,10 @@ services:
     container_name: honeystack-cowrie
     restart: unless-stopped
     ports:
-      - "${COWRIE_SSH_PORT:-2222}:2222"
-      - "${COWRIE_TELNET_PORT:-2223}:2223"
+      - "22:2222"
+      - "2222:2222"
+      - "23:2223"
+      - "2223:2223"
     environment:
       - COWRIE_output_jsonlog__enabled=true
       - COWRIE_output_jsonlog__logfile=/cowrie-logs/cowrie.json

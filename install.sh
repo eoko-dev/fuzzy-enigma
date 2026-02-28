@@ -129,24 +129,6 @@ install_docker() {
 }
 
 ###############################################################################
-# Install iptables dependencies
-###############################################################################
-install_iptables() {
-    if ! command -v iptables &>/dev/null; then
-        log_step "Installing iptables..."
-        apt-get install -y -qq iptables >/dev/null
-    fi
-
-    # Install iptables-persistent for rule persistence
-    if ! dpkg -l iptables-persistent &>/dev/null; then
-        log_step "Installing iptables-persistent..."
-        echo iptables-persistent iptables-persistent/autosave_v4 boolean true | debconf-set-selections
-        echo iptables-persistent iptables-persistent/autosave_v6 boolean true | debconf-set-selections
-        apt-get install -y -qq iptables-persistent >/dev/null
-    fi
-}
-
-###############################################################################
 # Load configuration
 ###############################################################################
 load_config() {
@@ -173,8 +155,6 @@ load_config() {
 GRAFANA_ADMIN_PASSWORD=honeystack
 GRAFANA_PORT=${GRAFANA_PORT}
 SSH_PORT=${SSH_PORT}
-COWRIE_SSH_PORT=2222
-COWRIE_TELNET_PORT=2223
 COWRIE_HOSTNAME=svr04
 LOKI_RETENTION=168h
 LOG_DIR=${LOG_DIR}
@@ -244,58 +224,6 @@ reconfigure_ssh() {
     else
         log_warn "Could not verify SSH on port ${SSH_PORT}. Check manually."
     fi
-}
-
-###############################################################################
-# Set up iptables port redirection
-###############################################################################
-setup_iptables() {
-    local cowrie_ssh_port="${COWRIE_SSH_PORT:-2222}"
-    local cowrie_telnet_port="${COWRIE_TELNET_PORT:-2223}"
-
-    log_step "Setting up iptables port redirection..."
-
-    # Clean up any existing HoneyStack rules
-    local existing_rules
-    existing_rules=$(iptables -t nat -S PREROUTING 2>/dev/null | grep "honeystack" || true)
-    if [[ -n "${existing_rules}" ]]; then
-        while read -r rule; do
-            # shellcheck disable=SC2086
-            iptables -t nat ${rule//-A/-D} 2>/dev/null || true
-        done <<< "${existing_rules}"
-    fi
-
-    # Redirect port 22 → Cowrie SSH
-    if iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}" \
-        -m comment --comment "honeystack-ssh" 2>/dev/null; then
-        log_info "Port 22 → ${cowrie_ssh_port} (Cowrie SSH)"
-    elif iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port "${cowrie_ssh_port}"; then
-        # Fallback without comment module
-        log_info "Port 22 → ${cowrie_ssh_port} (Cowrie SSH) [no comment tag]"
-    else
-        log_error "Failed to create iptables rule for SSH redirect. Check iptables/nftables setup."
-        exit 1
-    fi
-
-    # Redirect port 23 → Cowrie Telnet
-    if iptables -t nat -A PREROUTING -p tcp --dport 23 -j REDIRECT --to-port "${cowrie_telnet_port}" \
-        -m comment --comment "honeystack-telnet" 2>/dev/null; then
-        log_info "Port 23 → ${cowrie_telnet_port} (Cowrie Telnet)"
-    elif iptables -t nat -A PREROUTING -p tcp --dport 23 -j REDIRECT --to-port "${cowrie_telnet_port}"; then
-        log_info "Port 23 → ${cowrie_telnet_port} (Cowrie Telnet) [no comment tag]"
-    else
-        log_error "Failed to create iptables rule for Telnet redirect. Check iptables/nftables setup."
-        exit 1
-    fi
-
-    # Persist iptables rules
-    if command -v netfilter-persistent &>/dev/null; then
-        netfilter-persistent save 2>/dev/null || true
-    elif [[ -d /etc/iptables ]]; then
-        iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
-    fi
-
-    log_info "iptables rules configured and persisted."
 }
 
 ###############################################################################
@@ -420,11 +348,11 @@ health_check() {
     log_step "Container status:"
     docker compose -f "${INSTALL_DIR}/docker-compose.yml" ps 2>/dev/null || docker ps --filter "name=honeystack" || true
 
-    # Verify Cowrie is listening
-    if ss -tlnp | grep -q ":${COWRIE_SSH_PORT:-2222}"; then
-        log_info "Cowrie SSH is listening on port ${COWRIE_SSH_PORT:-2222}."
+    # Verify Cowrie is listening on port 22
+    if ss -tlnp | grep -q ":22\b"; then
+        log_info "Cowrie SSH is listening on port 22."
     else
-        log_warn "Cowrie SSH port ${COWRIE_SSH_PORT:-2222} not detected. Container may still be starting."
+        log_warn "Cowrie SSH port 22 not detected. Container may still be starting."
     fi
 }
 
@@ -449,8 +377,8 @@ print_summary() {
     echo -e "${GREEN}║${NC}    Password: ${CYAN}${grafana_pass}${NC}                                     ${GREEN}║${NC}"
     echo -e "${GREEN}║                                                              ║${NC}"
     echo -e "${GREEN}║${NC}  Honeypots Enabled:   ${CYAN}${ENABLED_HONEYPOTS}${NC}                                  ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}    Cowrie SSH:    port 22 → ${COWRIE_SSH_PORT:-2222}                           ${GREEN}║${NC}"
-    echo -e "${GREEN}║${NC}    Cowrie Telnet: port 23 → ${COWRIE_TELNET_PORT:-2223}                           ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}    Cowrie SSH:    port 22 + 2222                              ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}    Cowrie Telnet: port 23 + 2223                              ${GREEN}║${NC}"
     echo -e "${GREEN}║                                                              ║${NC}"
     echo -e "${GREEN}║${NC}  Install Dir: ${CYAN}${INSTALL_DIR}${NC}                              ${GREEN}║${NC}"
     echo -e "${GREEN}║${NC}  Log Dir:     ${CYAN}${LOG_DIR}${NC}                          ${GREEN}║${NC}"
@@ -486,9 +414,7 @@ main() {
     preflight_checks
     load_config
     install_docker
-    install_iptables
     reconfigure_ssh
-    setup_iptables
     create_directories
     copy_files
     generate_compose
