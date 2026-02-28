@@ -111,7 +111,7 @@ sudo ./install.sh
 ### Module Requirements
 
 The `docker-compose.<name>.yml` file must:
-- Use the `honeystack` network (external)
+- Use the `honeystack` network (define with `driver: bridge`, not `external: true`)
 - Write logs to `${LOG_DIR}/<name>/` in JSON format
 - Set memory limits under `deploy.resources.limits`
 

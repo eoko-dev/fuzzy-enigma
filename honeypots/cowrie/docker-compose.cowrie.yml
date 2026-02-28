@@ -31,4 +31,4 @@ volumes:
 networks:
   honeystack:
     name: honeystack
-    external: true
+    driver: bridge
