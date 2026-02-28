@@ -1,0 +1,9 @@
+# Environment file (contains passwords)
+.env
+
+# Generated compose file
+docker-compose.yml
+
+# Runtime data
+*.log
+*.pid

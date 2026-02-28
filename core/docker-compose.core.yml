@@ -1,0 +1,78 @@
+services:
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: honeystack-loki
+    restart: unless-stopped
+    volumes:
+      - loki-data:/loki
+      - ./core/loki/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - honeystack
+    deploy:
+      resources:
+        limits:
+          memory: 350M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: honeystack-promtail
+    restart: unless-stopped
+    volumes:
+      - ./core/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - ${LOG_DIR:-/var/log/honeypots}:/var/log/honeypots:ro
+      - promtail-positions:/tmp/positions
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - honeystack
+    deploy:
+      resources:
+        limits:
+          memory: 80M
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: honeystack-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-honeystack}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./core/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./core/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./core/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      loki:
+        condition: service_healthy
+    networks:
+      - honeystack
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  loki-data:
+  grafana-data:
+  promtail-positions:
+
+networks:
+  honeystack:
+    name: honeystack
+    driver: bridge
