@@ -35,6 +35,7 @@ scrape_configs:
             input: input
             protocol: protocol
       - labels:
+          honeypot:
           src_ip:
           protocol:
       - timestamp:
