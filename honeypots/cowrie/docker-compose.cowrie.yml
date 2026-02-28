@@ -1,8 +1,21 @@
 services:
+  # Init container to ensure the shared log directory is writable by cowrie
+  # (cowrie runs as UID 1000 inside the container; bind mounts default to root)
+  cowrie-log-init:
+    image: busybox:latest
+    container_name: honeystack-cowrie-log-init
+    restart: "no"
+    command: sh -c 'chown -R 1000:1000 /cowrie-logs && chmod 775 /cowrie-logs'
+    volumes:
+      - ${LOG_DIR:-/var/log/honeypots}/cowrie:/cowrie-logs
+
   cowrie:
     image: cowrie/cowrie:latest
     container_name: honeystack-cowrie
     restart: unless-stopped
+    depends_on:
+      cowrie-log-init:
+        condition: service_completed_successfully
     ports:
       - "22:2222"
       - "2222:2222"
@@ -11,6 +24,7 @@ services:
     environment:
       - COWRIE_output_jsonlog__enabled=true
       - COWRIE_output_jsonlog__logfile=/cowrie-logs/cowrie.json
+      - COWRIE_output_jsonlog__epoch_timestamp=false
       - COWRIE_ssh__listen_endpoints=tcp:2222:interface=0.0.0.0
       - COWRIE_telnet__listen_endpoints=tcp:2223:interface=0.0.0.0
       - COWRIE_honeypot__hostname=${COWRIE_HOSTNAME:-svr04}

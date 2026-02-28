@@ -130,7 +130,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid = \"cowrie.command\" [$__range])",
+          "expr": "count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie.command..*\" [$__range])",
           "legendFormat": "Commands",
           "refId": "A"
         }

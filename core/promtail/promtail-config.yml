@@ -1,7 +1,7 @@
 server:
   http_listen_port: 9080
   grpc_listen_port: 0
-  log_level: warn
+  log_level: info
 
 positions:
   filename: /tmp/positions/positions.yaml
@@ -20,6 +20,12 @@ scrape_configs:
           honeypot: cowrie
           __path__: /var/log/honeypots/cowrie/cowrie.json*
     pipeline_stages:
+      # Drop empty lines
+      - match:
+          selector: '{job="cowrie"}'
+          stages:
+            - drop:
+                expression: "^\\s*$"
       - json:
           expressions:
             eventid: eventid
@@ -34,10 +40,17 @@ scrape_configs:
             timestamp: timestamp
             input: input
             protocol: protocol
+      # Only promote low-cardinality fields to labels.
+      # High-cardinality fields like src_ip are kept as extracted data
+      # and can be queried with | json | src_ip = "x.x.x.x" in LogQL.
+      # Promoting src_ip to a label creates a new Loki stream per IP,
+      # which quickly exhausts max_streams_per_user and drops logs.
       - labels:
-          honeypot:
-          src_ip:
           protocol:
       - timestamp:
           source: timestamp
           format: "2006-01-02T15:04:05.000000Z07:00"
+          fallback_formats:
+            - "2006-01-02T15:04:05.000Z07:00"
+            - "2006-01-02T15:04:05Z07:00"
+            - "2006-01-02T15:04:05.999999999Z07:00"
