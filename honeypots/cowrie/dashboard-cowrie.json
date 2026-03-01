@@ -249,10 +249,11 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Count" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
-              { "id": "color", "value": { "mode": "continuous-reds" } }
+              { "id": "color", "value": { "mode": "continuous-reds" } },
+              { "id": "displayName", "value": "Count" }
             ]
           }
         ]
@@ -289,10 +290,11 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Count" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
-              { "id": "color", "value": { "mode": "continuous-oranges" } }
+              { "id": "color", "value": { "mode": "continuous-oranges" } },
+              { "id": "displayName", "value": "Count" }
             ]
           }
         ]
@@ -329,10 +331,11 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Count" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
-              { "id": "color", "value": { "mode": "continuous-blues" } }
+              { "id": "color", "value": { "mode": "continuous-blues" } },
+              { "id": "displayName", "value": "Count" }
             ]
           },
           {
@@ -386,10 +389,11 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Count" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
-              { "id": "color", "value": { "mode": "continuous-purples" } }
+              { "id": "color", "value": { "mode": "continuous-purples" } },
+              { "id": "displayName", "value": "Count" }
             ]
           }
         ]
@@ -508,7 +512,7 @@
               "style": {
                 "color": { "fixed": "dark-red" },
                 "opacity": 0.6,
-                "size": { "fixed": 5, "max": 15, "min": 2, "mode": "field", "field": "Value" },
+                "size": { "fixed": 5, "max": 15, "min": 2, "mode": "field", "field": "Value #A" },
                 "symbol": { "fixed": "img/icons/marker/circle.svg", "mode": "fixed" }
               }
             },
@@ -527,6 +531,17 @@
       },
       "title": "Attack Origins World Map",
       "type": "geomap",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              { "targetField": "geoip_latitude", "destinationType": "number" },
+              { "targetField": "geoip_longitude", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
@@ -551,7 +566,7 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Value" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
               { "id": "color", "value": { "mode": "continuous-reds" } },
@@ -592,7 +607,7 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Value" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
               { "id": "color", "value": { "mode": "continuous-purples" } },

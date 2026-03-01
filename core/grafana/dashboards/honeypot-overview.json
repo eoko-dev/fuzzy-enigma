@@ -338,15 +338,87 @@
       ]
     },
     {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 25 },
+      "id": 9,
+      "options": {
+        "basemap": { "name": "Basemap", "type": "default" },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": { "fixed": "dark-red" },
+                "opacity": 0.6,
+                "size": { "fixed": 5, "max": 15, "min": 2, "mode": "field", "field": "Value #A" },
+                "symbol": { "fixed": "img/icons/marker/circle.svg", "mode": "fixed" }
+              }
+            },
+            "location": {
+              "mode": "coords",
+              "latitude": "geoip_latitude",
+              "longitude": "geoip_longitude"
+            },
+            "name": "Attack Origins",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": { "mode": "details" },
+        "view": { "allLayers": true, "id": "zero", "lat": 0, "lon": 0, "zoom": 1 }
+      },
+      "title": "Attack Origins Map",
+      "type": "geomap",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              { "targetField": "geoip_latitude", "destinationType": "number" },
+              { "targetField": "geoip_longitude", "destinationType": "number" }
+            ]
+          }
+        }
+      ],
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(500, sum by (geoip_latitude, geoip_longitude, geoip_country_name) (count_over_time({job=~\".+\"} | json | geoip_latitude != \"\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 25 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
       "id": 103,
       "title": "Recent Events",
       "type": "row"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 26 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
       "id": 8,
       "options": {
         "dedupStrategy": "none",
