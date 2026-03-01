@@ -59,7 +59,6 @@ scrape_configs:
   - job_name: docker_containers
     docker_sd_configs:
       - host: unix:///var/run/docker.sock
-        api_version: "1.44"
         refresh_interval: 5s
         filters:
           - name: label

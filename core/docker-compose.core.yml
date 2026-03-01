@@ -23,6 +23,8 @@ services:
     image: grafana/promtail:2.9.4
     container_name: honeystack-promtail
     restart: unless-stopped
+    environment:
+      - DOCKER_API_VERSION=1.44
     volumes:
       - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - ${LOG_DIR:-/var/log/honeypots}:/var/log/honeypots:ro
