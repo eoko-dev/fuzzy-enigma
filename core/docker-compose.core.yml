@@ -30,6 +30,7 @@ services:
       - ${LOG_DIR:-/var/log/honeypots}:/var/log/honeypots:ro
       - promtail-positions:/tmp/positions
       - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker socket for container log discovery
+      - ${GEOIP_DIR:-/opt/honeystack/geoip}:/etc/promtail/geoip:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       loki:
@@ -39,7 +40,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 80M
+          memory: 128M
 
   grafana:
     image: grafana/grafana:10.3.1
@@ -55,6 +56,7 @@ services:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ${GRAFANA_CERT_DIR:-/opt/honeystack/certs}:/etc/grafana/certs:ro
     depends_on:
       loki:
         condition: service_healthy
@@ -65,7 +67,7 @@ services:
         limits:
           memory: 256M
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --no-check-certificate --spider https://localhost:3000/api/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5

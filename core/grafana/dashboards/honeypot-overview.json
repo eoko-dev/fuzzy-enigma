@@ -50,7 +50,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid != \"\" [$__range])",
+          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid != \"\" [$__range]))",
           "legendFormat": "Events",
           "queryType": "instant",
           "refId": "A"
@@ -91,7 +91,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie[.]login[.].*\" [$__range])",
+          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie[.]login[.].*\" [$__range]))",
           "legendFormat": "Logins",
           "queryType": "instant",
           "refId": "A"
@@ -132,7 +132,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie[.]command[.].*\" [$__range])",
+          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie[.]command[.].*\" [$__range]))",
           "legendFormat": "Commands",
           "queryType": "instant",
           "refId": "A"
@@ -173,7 +173,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid = \"cowrie.session.connect\" [$__range])",
+          "expr": "sum(count_over_time({job=~\".+\"} | json | eventid = \"cowrie.session.connect\" [$__range]))",
           "legendFormat": "Sessions",
           "queryType": "instant",
           "refId": "A"
@@ -252,6 +252,19 @@
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
               { "id": "color", "value": { "mode": "continuous-reds" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Field" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  { "title": "AbuseIPDB", "url": "https://www.abuseipdb.com/check/${__value.raw}", "targetBlank": true },
+                  { "title": "VirusTotal", "url": "https://www.virustotal.com/gui/ip-address/${__value.raw}", "targetBlank": true },
+                  { "title": "Shodan", "url": "https://www.shodan.io/host/${__value.raw}", "targetBlank": true }
+                ]
+              }
             ]
           }
         ]

@@ -7,11 +7,11 @@ HoneyStack is a lightweight, modular honeypot platform with built-in Grafana das
 ## Architecture
 
 ```
-Internet → :22 → Cowrie (:2222) → JSON logs → Promtail → Loki → Grafana (:3000)
+Internet → :22 → Cowrie (:2222) → JSON logs → Promtail (+ GeoIP) → Loki → Grafana (:3000 HTTPS)
 Real SSH moved to :22222
 ```
 
-Stack: Cowrie (honeypot) + Promtail (log shipper) + Loki (log store) + Grafana (dashboards)
+Stack: Cowrie (honeypot) + Promtail (log shipper + optional GeoIP enrichment) + Loki (log store) + Grafana (dashboards, HTTPS via self-signed cert)
 
 ## Project Structure
 
@@ -24,6 +24,7 @@ Stack: Cowrie (honeypot) + Promtail (log shipper) + Loki (log store) + Grafana (
   - `core/grafana/` — Grafana config, provisioning (datasources, dashboard provider), dashboard JSON files.
   - `core/loki/loki-config.yml` — Loki config tuned for low memory (1MB chunks, 7-day retention).
   - `core/promtail/promtail-config.yml` — Log scraping pipeline with JSON parsing stages.
+  - `core/promtail/promtail-config-geoip.yml` — GeoIP-enriched variant (auto-selected if GeoLite2-City.mmdb downloads successfully).
 - `honeypots/` — Modular honeypot directory. Each honeypot is a subdirectory.
   - `honeypots/cowrie/` — Cowrie module: compose file, config, Grafana dashboard.
 
@@ -50,7 +51,7 @@ Enable by adding the name to `ENABLED_HONEYPOTS` in `honeystack.conf`.
 No automated test suite. Validation is manual:
 - Run `sudo ./install.sh` on Ubuntu/Debian with 1-2GB RAM
 - SSH to port 22 should hit Cowrie; real SSH on port 22222
-- Grafana at `:3000` with dashboards populated after a few login attempts
+- Grafana at `https://<ip>:3000` (self-signed cert — accept browser warning) with dashboards populated after a few login attempts
 - `docker stats --no-stream` to verify RAM stays under budget
 - `sudo ./uninstall.sh` to verify clean teardown
 

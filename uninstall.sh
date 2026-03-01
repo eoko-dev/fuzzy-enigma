@@ -98,6 +98,28 @@ if [[ "${remove_data}" == "y" || "${remove_data}" == "Y" ]]; then
 fi
 
 ###############################################################################
+# Remove TLS certificates
+###############################################################################
+if [[ -d "${INSTALL_DIR}/certs" ]]; then
+    read -rp "Remove TLS certificates (${INSTALL_DIR}/certs/)? [y/N]: " remove_certs || true
+    if [[ "${remove_certs}" == "y" || "${remove_certs}" == "Y" ]]; then
+        rm -rf "${INSTALL_DIR}/certs"
+        log_info "TLS certificates removed."
+    fi
+fi
+
+###############################################################################
+# Remove GeoIP database
+###############################################################################
+if [[ -d "${INSTALL_DIR}/geoip" ]]; then
+    read -rp "Remove GeoIP database (${INSTALL_DIR}/geoip/)? [y/N]: " remove_geoip || true
+    if [[ "${remove_geoip}" == "y" || "${remove_geoip}" == "Y" ]]; then
+        rm -rf "${INSTALL_DIR}/geoip"
+        log_info "GeoIP database removed."
+    fi
+fi
+
+###############################################################################
 # Remove install directory
 ###############################################################################
 read -rp "Remove installation directory (${INSTALL_DIR})? [y/N]: " remove_install || true

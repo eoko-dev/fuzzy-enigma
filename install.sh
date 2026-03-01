@@ -145,6 +145,8 @@ load_config() {
     GRAFANA_PORT="${GRAFANA_PORT:-3000}"
     INSTALL_DIR="${INSTALL_DIR:-/opt/honeystack}"
     LOG_DIR="${LOG_DIR:-/var/log/honeypots}"
+    GEOIP_DIR="${GEOIP_DIR:-/opt/honeystack/geoip}"
+    GEOIP_ENABLED="${GEOIP_ENABLED:-false}"
 
     # Create .env from template if it doesn't exist
     if [[ ! -f "${ENV_FILE}" ]]; then
@@ -158,6 +160,9 @@ SSH_PORT=${SSH_PORT}
 COWRIE_HOSTNAME=svr04
 LOKI_RETENTION=168h
 LOG_DIR=${LOG_DIR}
+GRAFANA_CERT_DIR=${INSTALL_DIR}/certs
+GEOIP_DIR=${INSTALL_DIR}/geoip
+GEOIP_ENABLED=false
 EOF
         fi
     fi
@@ -227,6 +232,68 @@ reconfigure_ssh() {
 }
 
 ###############################################################################
+# Generate self-signed TLS certificate for Grafana
+###############################################################################
+generate_tls_cert() {
+    log_step "Generating self-signed TLS certificate for Grafana..."
+
+    local cert_dir="${INSTALL_DIR}/certs"
+    mkdir -p "${cert_dir}"
+    chmod 700 "${cert_dir}"
+
+    if [[ -f "${cert_dir}/grafana.crt" && -f "${cert_dir}/grafana.key" ]]; then
+        log_info "TLS certificate already exists, skipping."
+        return 0
+    fi
+
+    local server_ip
+    server_ip=$(hostname -I | awk '{print $1}') || server_ip="127.0.0.1"
+
+    openssl req -x509 -newkey rsa:4096 \
+        -keyout "${cert_dir}/grafana.key" \
+        -out "${cert_dir}/grafana.crt" \
+        -sha256 -days 3650 -nodes \
+        -subj "/CN=HoneyStack-Grafana/O=HoneyStack/C=US" \
+        -addext "subjectAltName=IP:${server_ip},IP:127.0.0.1" \
+        2>/dev/null
+
+    chmod 600 "${cert_dir}/grafana.key"
+    chmod 644 "${cert_dir}/grafana.crt"
+    log_info "TLS cert generated for IP: ${server_ip} (self-signed, 10 years)"
+    log_warn "Browsers will show a security warning — expected for self-signed certs."
+    log_warn "To trust: import ${cert_dir}/grafana.crt into your browser/OS certificate store."
+}
+
+###############################################################################
+# Download GeoLite2-City.mmdb for Promtail GeoIP enrichment
+###############################################################################
+download_geoip_db() {
+    log_step "Downloading GeoLite2-City database for GeoIP enrichment..."
+
+    local geoip_dir="${INSTALL_DIR}/geoip"
+    local mmdb_path="${geoip_dir}/GeoLite2-City.mmdb"
+    local mmdb_url="https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb"
+
+    mkdir -p "${geoip_dir}"
+
+    if [[ -f "${mmdb_path}" ]]; then
+        log_info "GeoLite2-City.mmdb already exists, skipping download."
+        GEOIP_ENABLED=true
+        return 0
+    fi
+
+    if curl -fsSL --connect-timeout 10 --max-time 120 -o "${mmdb_path}" "${mmdb_url}"; then
+        log_info "GeoLite2-City.mmdb downloaded (~$(du -sh "${mmdb_path}" | cut -f1)). GeoIP enabled."
+        GEOIP_ENABLED=true
+    else
+        log_warn "Failed to download GeoLite2-City.mmdb. GeoIP enrichment will be disabled."
+        log_warn "To enable later: place GeoLite2-City.mmdb in ${geoip_dir}/ and reinstall."
+        GEOIP_ENABLED=false
+        rm -f "${mmdb_path}"
+    fi
+}
+
+###############################################################################
 # Create directory structure
 ###############################################################################
 create_directories() {
@@ -269,6 +336,13 @@ copy_files() {
             log_info "Installed dashboard for ${honeypot}"
         fi
     done
+
+    # Use GeoIP-aware Promtail config if mmdb was downloaded successfully
+    if [[ "${GEOIP_ENABLED:-false}" == "true" ]]; then
+        log_info "GeoIP enabled — installing GeoIP-aware Promtail config..."
+        cp "${SCRIPT_DIR}/core/promtail/promtail-config-geoip.yml" \
+           "${INSTALL_DIR}/core/promtail/promtail-config.yml"
+    fi
 
     log_info "Files copied."
 }
@@ -328,7 +402,7 @@ health_check() {
 
     # Wait for Grafana
     echo -n "  Waiting for Grafana"
-    while ! curl -sf http://localhost:${GRAFANA_PORT}/api/health &>/dev/null; do
+    while ! curl -sfk https://localhost:${GRAFANA_PORT}/api/health &>/dev/null; do
         echo -n "."
         sleep 3
         waited=$((waited + 3))
@@ -372,7 +446,7 @@ print_summary() {
     echo -e "${GREEN}║${NC}  SSH Management Port:  ${CYAN}${SSH_PORT}${NC}                                  ${GREEN}║${NC}"
     echo -e "${GREEN}║${NC}    Connect with: ${CYAN}ssh -p ${SSH_PORT} user@host${NC}                       ${GREEN}║${NC}"
     echo -e "${GREEN}║                                                              ║${NC}"
-    echo -e "${GREEN}║${NC}  Grafana Dashboard:   ${CYAN}http://<your-ip>:${GRAFANA_PORT}${NC}                  ${GREEN}║${NC}"
+    echo -e "${GREEN}║${NC}  Grafana Dashboard:   ${CYAN}https://<your-ip>:${GRAFANA_PORT}${NC}                 ${GREEN}║${NC}"
     echo -e "${GREEN}║${NC}    Username: ${CYAN}admin${NC}                                           ${GREEN}║${NC}"
     echo -e "${GREEN}║${NC}    Password: ${CYAN}${grafana_pass}${NC}                                     ${GREEN}║${NC}"
     echo -e "${GREEN}║                                                              ║${NC}"
@@ -416,6 +490,8 @@ main() {
     install_docker
     reconfigure_ssh
     create_directories
+    generate_tls_cert
+    download_geoip_db
     copy_files
     generate_compose
     start_services

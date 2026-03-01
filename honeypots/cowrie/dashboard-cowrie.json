@@ -44,7 +44,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.connect\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.connect\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -72,7 +72,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie[.]login[.].*\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie[.]login[.].*\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -99,7 +99,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.success\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.success\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -126,7 +126,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.failed\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.login.failed\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -153,7 +153,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie[.]command[.].*\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie[.]command[.].*\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -180,7 +180,7 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.file_download\" [$__range])",
+          "expr": "sum(count_over_time({honeypot=\"cowrie\"} | json | eventid = \"cowrie.session.file_download\" [$__range]))",
           "queryType": "instant",
           "refId": "A"
         }
@@ -334,6 +334,19 @@
               { "id": "custom.displayMode", "value": "gradient-gauge" },
               { "id": "color", "value": { "mode": "continuous-blues" } }
             ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "src_ip" },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  { "title": "AbuseIPDB", "url": "https://www.abuseipdb.com/check/${__value.raw}", "targetBlank": true },
+                  { "title": "VirusTotal", "url": "https://www.virustotal.com/gui/ip-address/${__value.raw}", "targetBlank": true },
+                  { "title": "Shodan", "url": "https://www.shodan.io/host/${__value.raw}", "targetBlank": true }
+                ]
+              }
+            ]
           }
         ]
       },
@@ -450,6 +463,190 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "{honeypot=\"cowrie\"} | json",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
+      "id": 204,
+      "title": "Geographic Intelligence",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 100 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 49 },
+      "id": 300,
+      "options": {
+        "basemap": { "name": "Basemap", "type": "default" },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": { "fixed": "dark-red" },
+                "opacity": 0.6,
+                "size": { "fixed": 5, "max": 15, "min": 2, "mode": "field", "field": "Value" },
+                "symbol": { "fixed": "img/icons/marker/circle.svg", "mode": "fixed" }
+              }
+            },
+            "location": {
+              "mode": "coords",
+              "latitude": "geoip_latitude",
+              "longitude": "geoip_longitude"
+            },
+            "name": "Attack Origins",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": { "mode": "details" },
+        "view": { "allLayers": true, "id": "zero", "lat": 0, "lon": 0, "zoom": 1 }
+      },
+      "title": "Attack Origins World Map",
+      "type": "geomap",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(500, sum by (geoip_latitude, geoip_longitude, geoip_country_name, geoip_city_name) (count_over_time({honeypot=\"cowrie\"} | json | geoip_latitude != \"\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "displayMode": "auto" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Value" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "gradient-gauge" },
+              { "id": "color", "value": { "mode": "continuous-reds" } },
+              { "id": "displayName", "value": "Count" }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 61 },
+      "id": 301,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Count" }]
+      },
+      "title": "Top Attacking Countries",
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(25, sum by (geoip_country_name, geoip_country_code) (count_over_time({honeypot=\"cowrie\"} | json | geoip_country_name != \"\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "displayMode": "auto" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Value" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "gradient-gauge" },
+              { "id": "color", "value": { "mode": "continuous-purples" } },
+              { "id": "displayName", "value": "Count" }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 61 },
+      "id": 302,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Count" }]
+      },
+      "title": "Top Credential Pairs (username:password)",
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "topk(25, sum by (username, password) (count_over_time({honeypot=\"cowrie\"} | json | eventid =~ \"cowrie[.]login[.].*\" | username != \"\" | password != \"\" [$__range])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "hue",
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "normal" }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 71 },
+      "id": 303,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Attacks by Country Over Time",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "loki", "uid": "loki" },
+          "expr": "sum by (geoip_country_name) (count_over_time({honeypot=\"cowrie\"} | json | geoip_country_name != \"\" [$__interval]))",
+          "legendFormat": "{{geoip_country_name}}",
           "queryType": "range",
           "refId": "A"
         }
