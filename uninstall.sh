@@ -114,8 +114,8 @@ if [[ "${remove_images}" == "y" || "${remove_images}" == "Y" ]]; then
     log_step "Removing Docker images..."
     docker rmi cowrie/cowrie:latest 2>/dev/null || true
     docker rmi grafana/grafana:10.3.1 2>/dev/null || true
-    docker rmi grafana/loki:2.9.4 2>/dev/null || true
-    docker rmi grafana/promtail:2.9.4 2>/dev/null || true
+    docker rmi grafana/loki:3.3.2 2>/dev/null || true
+    docker rmi grafana/promtail:3.3.2 2>/dev/null || true
     log_info "Docker images removed."
 fi
 

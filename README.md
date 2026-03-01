@@ -10,8 +10,8 @@ Think of it as a mini [T-Pot](https://github.com/telekom-security/tpotce) that d
                     ┌─────────────────────────────────────────┐
                     │              HoneyStack                  │
                     │                                         │
-Internet ──► :22 ──┤──► iptables REDIRECT ──► Cowrie (:2222) │
-             :23 ──┤──► iptables REDIRECT ──► Cowrie (:2223) │
+Internet ──► :22 ──┤──► Cowrie SSH (:2222)                    │
+           ► :23 ──┤──► Cowrie Telnet (:2223)                 │
                     │           │                              │
                     │           ▼ JSON logs                    │
                     │       Promtail ──► Loki ──► Grafana     │
@@ -20,7 +20,7 @@ Internet ──► :22 ──┤──► iptables REDIRECT ──► Cowrie (:2
                     Real SSH moved to :22222
 ```
 
-**RAM usage: ~800MB** (Cowrie 150MB + Loki 300MB + Promtail 50MB + Grafana 200MB)
+**RAM usage: ~900MB** (Cowrie 200MB + Loki 350MB + Promtail 80MB + Grafana 256MB)
 
 ## Quick Start
 
@@ -34,9 +34,8 @@ That's it. The installer handles everything:
 
 1. Installs Docker (if needed)
 2. Moves SSH to port 22222
-3. Sets up iptables to redirect port 22/23 to Cowrie
-4. Deploys Cowrie + Grafana + Loki + Promtail via Docker Compose
-5. Provisions Grafana with pre-built dashboards
+3. Deploys Cowrie + Grafana + Loki + Promtail via Docker Compose
+4. Provisions Grafana with pre-built dashboards
 
 After install, open **http://your-ip:3000** (admin / honeystack).
 
@@ -76,8 +75,6 @@ Copied from `.env.example` on first install. Controls Docker service settings:
 | `GRAFANA_ADMIN_PASSWORD` | `honeystack` | Grafana admin password |
 | `GRAFANA_PORT` | `3000` | Grafana web UI port |
 | `SSH_PORT` | `22222` | Real SSH port |
-| `COWRIE_SSH_PORT` | `2222` | Cowrie SSH listen port |
-| `COWRIE_TELNET_PORT` | `2223` | Cowrie Telnet listen port |
 | `COWRIE_HOSTNAME` | `svr04` | Hostname shown to attackers |
 | `LOKI_RETENTION` | `168h` | Log retention period (7 days) |
 | `LOG_DIR` | `/var/log/honeypots` | Host log directory |
@@ -185,9 +182,8 @@ sudo ./uninstall.sh
 
 The uninstaller will:
 1. Stop and remove all containers
-2. Remove iptables redirect rules
-3. Restore SSH to port 22
-4. Optionally remove data, logs, and Docker images
+2. Restore SSH to port 22
+3. Optionally remove data, logs, and Docker images
 
 ## License
 

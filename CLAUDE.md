@@ -7,7 +7,7 @@ HoneyStack is a lightweight, modular honeypot platform with built-in Grafana das
 ## Architecture
 
 ```
-Internet → :22 (iptables) → Cowrie (:2222) → JSON logs → Promtail → Loki → Grafana (:3000)
+Internet → :22 → Cowrie (:2222) → JSON logs → Promtail → Loki → Grafana (:3000)
 Real SSH moved to :22222
 ```
 
