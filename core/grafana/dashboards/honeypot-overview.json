@@ -39,7 +39,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -52,6 +52,7 @@
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({job=~\".+\"} | json | eventid != \"\" [$__range])",
           "legendFormat": "Events",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -79,7 +80,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -92,6 +93,7 @@
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({job=~\".+\"} | json | eventid != \"\" [$__range])",
           "legendFormat": "Logins",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -119,7 +121,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -130,8 +132,9 @@
       "targets": [
         {
           "datasource": { "type": "loki", "uid": "loki" },
-          "expr": "count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie\\\\.command\\\\..*\" [$__range])",
+          "expr": "count_over_time({job=~\".+\"} | json | eventid =~ \"cowrie\\.command\\..*\" [$__range])",
           "legendFormat": "Commands",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
@@ -159,7 +162,7 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": ["sum"],
           "fields": "",
           "values": false
         },
@@ -172,6 +175,7 @@
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "count_over_time({job=~\".+\"} | json | eventid = \"cowrie.session.connect\" [$__range])",
           "legendFormat": "Sessions",
+          "queryType": "instant",
           "refId": "A"
         }
       ]
