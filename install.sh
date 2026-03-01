@@ -257,8 +257,9 @@ generate_tls_cert() {
         -addext "subjectAltName=IP:${server_ip},IP:127.0.0.1" \
         2>/dev/null
 
-    chmod 600 "${cert_dir}/grafana.key"
+    chmod 640 "${cert_dir}/grafana.key"
     chmod 644 "${cert_dir}/grafana.crt"
+    chown 472:472 "${cert_dir}/grafana.key" "${cert_dir}/grafana.crt"
     log_info "TLS cert generated for IP: ${server_ip} (self-signed, 10 years)"
     log_warn "Browsers will show a security warning — expected for self-signed certs."
     log_warn "To trust: import ${cert_dir}/grafana.crt into your browser/OS certificate store."
