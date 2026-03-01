@@ -248,14 +248,15 @@
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Count" },
+            "matcher": { "id": "byName", "options": "Value #A" },
             "properties": [
               { "id": "custom.displayMode", "value": "gradient-gauge" },
-              { "id": "color", "value": { "mode": "continuous-reds" } }
+              { "id": "color", "value": { "mode": "continuous-reds" } },
+              { "id": "displayName", "value": "Count" }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Field" },
+            "matcher": { "id": "byName", "options": "src_ip" },
             "properties": [
               {
                 "id": "links",
@@ -281,22 +282,8 @@
         {
           "datasource": { "type": "loki", "uid": "loki" },
           "expr": "topk(20, sum by (src_ip) (count_over_time({job=~\".+\"} | json | src_ip != \"\" [$__range])))",
-          "legendFormat": "{{src_ip}}",
-          "refId": "A",
-          "instant": true
-        }
-      ],
-      "transformations": [
-        {
-          "id": "reduce",
-          "options": { "reducers": ["sum"] }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [{ "field": "Total", "desc": true }]
-          }
+          "queryType": "instant",
+          "refId": "A"
         }
       ]
     },
@@ -390,6 +377,14 @@
       "title": "Attack Origins Map",
       "type": "geomap",
       "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": { "mode": "columns" }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
         {
           "id": "convertFieldType",
           "options": {

@@ -533,6 +533,14 @@
       "type": "geomap",
       "transformations": [
         {
+          "id": "labelsToFields",
+          "options": { "mode": "columns" }
+        },
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
           "id": "convertFieldType",
           "options": {
             "conversions": [
