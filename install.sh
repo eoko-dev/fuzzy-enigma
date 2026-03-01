@@ -239,7 +239,7 @@ generate_tls_cert() {
 
     local cert_dir="${INSTALL_DIR}/certs"
     mkdir -p "${cert_dir}"
-    chmod 700 "${cert_dir}"
+    chmod 755 "${cert_dir}"
 
     if [[ -f "${cert_dir}/grafana.crt" && -f "${cert_dir}/grafana.key" ]]; then
         log_info "TLS certificate already exists, skipping."
