@@ -54,3 +54,22 @@ scrape_configs:
             - "2006-01-02T15:04:05.999999999-07:00"
             - "2006-01-02T15:04:05Z07:00"
           action_on_failure: fudge
+
+  # Docker container logs - captures stdout/stderr from all honeystack containers
+  - job_name: docker_containers
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=honeystack"]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: "/(.*)"
+        target_label: container_name
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+    pipeline_stages:
+      - docker: {}

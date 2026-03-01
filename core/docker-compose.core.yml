@@ -27,6 +27,7 @@ services:
       - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
       - ${LOG_DIR:-/var/log/honeypots}:/var/log/honeypots:ro
       - promtail-positions:/tmp/positions
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker socket for container log discovery
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       loki:
