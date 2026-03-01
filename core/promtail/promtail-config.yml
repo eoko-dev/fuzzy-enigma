@@ -49,8 +49,8 @@ scrape_configs:
           protocol:
       - timestamp:
           source: timestamp
-          format: "2006-01-02T15:04:05.000000Z07:00"
+          format: "2006-01-02T15:04:05.999999999Z07:00"
           fallback_formats:
-            - "2006-01-02T15:04:05.000Z07:00"
+            - "2006-01-02T15:04:05.999999999+07:00"
             - "2006-01-02T15:04:05Z07:00"
-            - "2006-01-02T15:04:05.999999999Z07:00"
+          action_on_failure: fudge
