@@ -537,6 +537,10 @@
           "options": { "mode": "columns" }
         },
         {
+          "id": "concatenate",
+          "options": {}
+        },
+        {
           "id": "convertFieldType",
           "options": {
             "conversions": [
